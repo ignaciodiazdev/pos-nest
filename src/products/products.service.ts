@@ -27,8 +27,20 @@ export class ProductsService {
     })
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async findAll() {
+    const [ data, total ] = await this.productRepository.findAndCount({
+      relations: {
+        category: true
+      },
+      order: {
+        id: 'DESC'
+      }
+    });
+    
+    return {
+      data,
+      total
+    }
   }
 
   findOne(id: number) {
