@@ -5,7 +5,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { FindManyOptions, Repository } from 'typeorm';
 import { Category } from 'src/categories/entities/category.entity';
-import { skip } from 'rxjs';
 
 @Injectable()
 export class ProductsService {
@@ -55,15 +54,40 @@ export class ProductsService {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(id: number) {
+    const product =  await this.productRepository.findOne({ 
+      relations: {
+        category: true
+      },
+      where: {
+        id
+      }
+    })
+    if (!product) {
+      throw new NotFoundException(`El producto con el ID: ${id} no fue encontrado`)
+    }
+    return product;
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: number, updateProductDto: UpdateProductDto) {
+    const product = await this.findOne(id)
+    Object.assign(product, updateProductDto)
+
+    if(updateProductDto.categoryId){
+      const category = await this.categoryRepository.findOneBy({id: updateProductDto.categoryId})
+      if(!category){
+        let errors: string[] = []
+        errors.push('La categoría no existe')
+        throw new NotFoundException(errors)
+      }
+      product.category = category
+    }
+    return await this.productRepository.save(product)
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async remove(id: number) {
+    const product  = await this.findOne(id)
+    await this.productRepository.remove(product)
+    return "Producto eliminado";
   }
 }
