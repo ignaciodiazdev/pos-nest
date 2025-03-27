@@ -10,7 +10,7 @@ export const typeOrmConfig = (configService: ConfigService):TypeOrmModuleOptions
     password: configService.get('DATABASE_PASS'),
     database: configService.get('DATABASE_NAME'),
     ssl: true,
-    logging: true,
+    logging: false,//en true muestra el SQL que ejecuta TypeORM en consola
     entities: [join(__dirname + '../../**/*.entity.{js,ts}')],
     synchronize: true
 })
